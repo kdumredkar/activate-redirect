@@ -14,9 +14,8 @@
       min-height: 100vh;
       margin: 0;
       background: #f5f5f5;
-      color: #333;
     }
-    p { font-size: 15px; color: #666; margin: 8px 0; }
+    p { font-size: 15px; color: #666; margin: 8px 0; text-align: center; padding: 0 24px; }
     a {
       margin-top: 20px;
       padding: 12px 28px;
@@ -29,30 +28,26 @@
   </style>
 </head>
 <body>
-  <p>Opening your authenticator app...</p>
-  <a id="open-btn" href="#">Tap here if app doesn't open</a>
+  <p id="msg">Opening your authenticator app...</p>
+  <a id="open-btn" href="#">Tap here to open app</a>
 
   <script>
     const TARGET_URL = 'https://test.miniorange.in/activate/dGVzdHVzZXI6c2VjcmV0MTIz';
     const ua = navigator.userAgent;
+    const btn = document.getElementById('open-btn');
+    const msg = document.getElementById('msg');
 
-    function redirect(url) {
-      document.getElementById('open-btn').href = url;
-      window.location.href = url;
-    }
-
-    if (/CriOS/.test(ua)) {
-      // Chrome on iOS — hand off via googlechrome:// scheme
-      redirect('googlechrome://navigate?url=' + encodeURIComponent(TARGET_URL));
-    } else if (/FxiOS/.test(ua)) {
-      // Firefox on iOS
-      redirect('firefox://open-url?url=' + encodeURIComponent(TARGET_URL));
-    } else if (/OPiOS/.test(ua)) {
-      // Opera on iOS
-      redirect('opera-https://' + TARGET_URL.replace('https://', ''));
+    if (/CriOS/.test(ua) || /FxiOS/.test(ua) || /OPiOS/.test(ua)) {
+      // Chrome / Firefox / Opera on iOS cannot trigger Universal Links directly.
+      // x-safari-https:// forces iOS to open the URL in Safari,
+      // which then triggers Universal Links and launches the app.
+      const safariURL = 'x-safari-' + TARGET_URL;
+      btn.href = safariURL;
+      msg.textContent = 'Tap the button below — it will open Safari and launch the app automatically.';
     } else {
-      // Safari, Android, or desktop — direct navigation, Universal Links fires
-      redirect(TARGET_URL);
+      // Safari on iOS, or Android / desktop — direct navigation triggers Universal Links
+      btn.href = TARGET_URL;
+      window.location.href = TARGET_URL;
     }
   </script>
 </body>
